@@ -57,23 +57,37 @@ class dataViz:
         return(data)
 
     # def visualise(self, xList, yList):
-    def visualise(self, d, xList, yList):
-
-        plt.plot(xList, yList, 'ro', data=d)
+    def visualise(self, squads, d, xLabel, yLabel):
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        
+        ax.plot(xLabel, yLabel, 'ro', data=d)
         # plt.plot(xList, yList, 'ro')
+
+        xData = d[xLabel]
+        yData = d[yLabel]
+        squadIdx = 1;
+
+        for xy in zip(xData,yData):
+            ax.annotate('(%s)' % squads[squadIdx], xy=xy, textcoords='data')
+            squadIdx += 1
+
         plt.savefig('xA_vs_A.png')
         
+        ax.grid()
         plt.show
         
 
 def main():
     data = {};
     viz = dataViz('fbref_squad_passing.csv')
-    teamRow = viz.getRow('Arsenal')
 
     map = viz.colNameMap(); 
+
     xAData = viz.getColumn('A-xA')
     AData = viz.getColumn('Ast')
+    squads = viz.getColumn('Squad')
+
     filtered_xA = viz.remAlphaBs(xAData);
     filtered_A = viz.remAlphaBs(AData)
 
@@ -81,7 +95,7 @@ def main():
     data['Ast'] = filtered_A
 
     # viz.visualise(filtered_xA, filtered_A);
-    viz.visualise(data, 'A-xA', 'Ast')
+    viz.visualise(squads, data, 'A-xA', 'Ast')
     # print(titles)
 
 if __name__ == "__main__":
