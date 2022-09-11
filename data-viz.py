@@ -56,18 +56,18 @@ class dataViz:
 
         return(data)
 
-    def visualise(self, xList, yList):
-        # cbookFile = cbook.open_file_cm(self.data, mode='r')
+    # def visualise(self, xList, yList):
+    def visualise(self, d, xList, yList):
 
-        fig, ax = plt.subplots(1, 1)
-        for i in range(len(xList)):
-            ax.plot(xList[i], yList[i])
+        plt.plot(xList, yList, 'ro', data=d)
+        # plt.plot(xList, yList, 'ro')
+        plt.savefig('xA_vs_A.png')
         
         plt.show
         
 
 def main():
-    
+    data = {};
     viz = dataViz('fbref_squad_passing.csv')
     teamRow = viz.getRow('Arsenal')
 
@@ -77,7 +77,11 @@ def main():
     filtered_xA = viz.remAlphaBs(xAData);
     filtered_A = viz.remAlphaBs(AData)
 
-    viz.visualise(filtered_xA, filtered_A);
+    data['A-xA'] = filtered_xA
+    data['Ast'] = filtered_A
+
+    # viz.visualise(filtered_xA, filtered_A);
+    viz.visualise(data, 'A-xA', 'Ast')
     # print(titles)
 
 if __name__ == "__main__":
