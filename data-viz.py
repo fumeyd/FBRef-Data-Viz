@@ -8,13 +8,13 @@ class dataViz:
         self.data = csvData
 
     def getData(self):
-        with open(self.data) as csv_file:
+        with open(self.data, encoding='utf8') as csv_file:
             data = csv.reader(csv_file)
         
         return(data)
 
     def getTitleColumns(self):
-        with open(self.data) as csv_file:
+        with open(self.data, encoding='utf8') as csv_file:
             csv_reader = csv.reader(csv_file)
             for i in range(1):
                 for row in csv_reader:
@@ -32,7 +32,7 @@ class dataViz:
     def getColumn(self, colName):
         colNameMap = self.colNameMap()
         colsData = []
-        with open(self.data) as csv_file:
+        with open(self.data, encoding='utf8') as csv_file:
             csv_reader = csv.reader(csv_file)
             colIdx = colNameMap.get(colName)
             for row in csv_reader:
@@ -40,8 +40,18 @@ class dataViz:
         
         return(colsData)
 
+    def mapDataToSquad(self, data, squads):
+        map = {}
+
+        for i in range(len(data)):
+            map[squads[i]] = float(data[i])
+
+        map = dict(sorted(map.items(),key=lambda x:x[1],reverse=False))
+
+        return(map)
+
     def getRow(self, teamName):  
-        with open(self.data) as csv_file: 
+        with open(self.data, encoding='utf8') as csv_file: 
             csv_reader = csv.reader(csv_file)
             for row in csv_reader:
                 if teamName in row:
@@ -56,47 +66,63 @@ class dataViz:
 
         return(data)
 
-    # def visualise(self, xList, yList):
     def visualise(self, squads, d, xLabel, yLabel):
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        
-        ax.plot(xLabel, yLabel, 'ro', data=d)
-        # plt.plot(xList, yList, 'ro')
+        fig = plt.figure(figsize=(10,10))
+        plt.axis('equal')
+
+        plt.xlabel(xLabel)
+        plt.xticks([])
+        plt.ylabel(yLabel)
+        plt.yticks([])
+        ax = fig.add_subplot()
+        plotMap = {}
 
         xData = d[xLabel]
         yData = d[yLabel]
-        squadIdx = 1;
+        squadIdx = 0;
 
-        for xy in zip(xData,yData):
+        xMap = self.mapDataToSquad(xData, squads)
+        yMap = self.mapDataToSquad(yData, squads)
+
+        for xKey in xMap:
+            plotMap[xKey] = [xMap[xKey]]
+
+        for yKey in yMap:
+            plotMap[yKey].append(yMap[yKey])
+
+        squads = list(plotMap.keys())
+
+        for squad, data in plotMap.items():
+            ax.plot([data[0]], [data[1]], 'ro')
+
+        for xy in plotMap.values():
             ax.annotate('(%s)' % squads[squadIdx], xy=xy, textcoords='data')
             squadIdx += 1
 
-        plt.savefig('xA_vs_A.png')
+        plt.savefig('GD_vs_xGD.png')
         
         ax.grid()
-        plt.show
+        plt.show()
         
 
 def main():
     data = {};
-    viz = dataViz('fbref_squad_passing.csv')
+    # viz = dataViz('fbref_squad_passing.csv')
+    viz = dataViz('fbref_xGD.csv')
 
-    map = viz.colNameMap(); 
-
-    xAData = viz.getColumn('A-xA')
-    AData = viz.getColumn('Ast')
+    xData = viz.getColumn('xGD')
+    yData = viz.getColumn('GD')
     squads = viz.getColumn('Squad')
+    squads.remove('Squad')
 
-    filtered_xA = viz.remAlphaBs(xAData);
-    filtered_A = viz.remAlphaBs(AData)
+    filtered_x = viz.remAlphaBs(xData);
+    filtered_y = viz.remAlphaBs(yData)
 
-    data['A-xA'] = filtered_xA
-    data['Ast'] = filtered_A
+    data['xGD'] = filtered_x
+    data['GD'] = filtered_y
 
     # viz.visualise(filtered_xA, filtered_A);
-    viz.visualise(squads, data, 'A-xA', 'Ast')
-    # print(titles)
+    viz.visualise(squads, data, 'xGD', 'GD')
 
 if __name__ == "__main__":
     main()
